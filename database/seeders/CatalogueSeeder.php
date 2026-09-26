@@ -73,6 +73,59 @@ class CatalogueSeeder extends Seeder
                     ['code' => 'BAG-A', 'quantity' => 8, 'days' => 1],
                 ],
             ],
+            [
+                'name' => 'Greek Yogurt',
+                'price' => 3.40,
+                'cost' => 1.90,
+                'batches' => [
+                    ['code' => 'YOG-A', 'quantity' => 10, 'days' => 11],
+                ],
+            ],
+            [
+                'name' => 'Chicken Wrap',
+                'price' => 6.50,
+                'cost' => 3.10,
+                'batches' => [
+                    ['code' => 'WRP-A', 'quantity' => 6, 'days' => 2],
+                    ['code' => 'WRP-B', 'quantity' => 6, 'days' => 4],
+                ],
+            ],
+            [
+                // Only an expired batch, so the terminal refuses to sell it
+                // and the admin override path is demonstrable.
+                'name' => 'Day-old Danish',
+                'price' => 1.50,
+                'cost' => 0.60,
+                'batches' => [
+                    ['code' => 'DAN-OLD', 'quantity' => 5, 'days' => -2],
+                ],
+            ],
+        ],
+    ];
+
+    /**
+     * Catalogue products that are perishable and should therefore be tracked
+     * batch by batch, with the batches to seed for each.
+     *
+     * Keyed by product name. A batch given `days` < 0 has already expired,
+     * which is what demonstrates the block on the terminal.
+     *
+     * @var array<string, array<int, array{code: string, quantity: int, days: int}>>
+     */
+    private const TRACKED_CATALOGUE = [
+        'Croissant' => [
+            ['code' => 'CRO-A', 'quantity' => 10, 'days' => 1],
+            ['code' => 'CRO-B', 'quantity' => 10, 'days' => 2],
+        ],
+        'Blueberry Muffin' => [
+            ['code' => 'MUF-A', 'quantity' => 12, 'days' => 4],
+        ],
+        'Orange Juice' => [
+            ['code' => 'OJ-A', 'quantity' => 14, 'days' => 9],
+        ],
+        'Dark Chocolate Bar' => [
+            // Well beyond the 15-day window, so the contrast is visible.
+            ['code' => 'DCB-A', 'quantity' => 20, 'days' => 45],
         ],
     ];
 
@@ -111,6 +164,72 @@ class CatalogueSeeder extends Seeder
     }
 
     /**
+     * Give the perishable items in the main catalogue an expiry track and a
+     * set of batches, so the terminal shows real warnings for shop goods
+     * rather than only for the dedicated Fresh category.
+     *
+     * Stock is moved into the batches through the allocator, which keeps
+     * products.stock in step and logs the movement, so the seeded figures stay
+     * consistent with the ordinary seeded stock.
+     */
+    private function trackCatalogueItems(LotAllocator $allocator): void
+    {
+        foreach (self::TRACKED_CATALOGUE as $name => $batches) {
+            $product = Product::where('name', $name)->first();
+
+            if ($product === null) {
+                continue;
+            }
+
+            if (! $product->tracks_expiry) {
+                $product->forceFill([
+                    'tracks_expiry' => true,
+                    'expiry_warning_days' => Product::DEFAULT_EXPIRY_WARNING_DAYS,
+                ])->save();
+            }
+
+            // Already has batches: this seeder has run before, and an
+            // administrator's stock must not be topped up again.
+            if ($product->lots()->exists()) {
+                continue;
+            }
+
+            // The seeded stock was set directly on the product. Move it into
+            // the batches so nothing is counted twice.
+            $remaining = (int) $product->stock;
+            $product->forceFill(['stock' => 0])->save();
+
+            foreach ($batches as $index => $batch) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $quantity = min($remaining, $batch['quantity']);
+                $remaining -= $quantity;
+
+                $allocator->receive(
+                    product: $product,
+                    code: $batch['code'],
+                    quantity: $quantity,
+                    expiresAt: today()->addDays($batch['days'])->toDateString(),
+                    cost: (float) $product->cost,
+                );
+            }
+
+            // Anything the batches did not cover stays as undated stock.
+            if ($remaining > 0) {
+                $allocator->receive(
+                    product: $product,
+                    code: 'UNDATED',
+                    quantity: $remaining,
+                    expiresAt: null,
+                    cost: (float) $product->cost,
+                );
+            }
+        }
+    }
+
+    /**
      * Perishable products, tracked batch by batch.
      *
      * These are created firstOrCreate on sku like everything else, but their
@@ -121,6 +240,8 @@ class CatalogueSeeder extends Seeder
     private function seedPerishables(): void
     {
         $allocator = app(LotAllocator::class);
+
+        $this->trackCatalogueItems($allocator);
 
         foreach (self::PERISHABLE as $categoryName => $products) {
             $category = Category::firstOrCreate(
