@@ -56,9 +56,13 @@ class CatalogueSeeder extends Seeder
                 'price' => 2.20,
                 'cost' => 1.30,
                 'batches' => [
-                    // Sooner first: this is the batch the till should sell.
-                    ['code' => 'MILK-B2', 'quantity' => 6, 'days' => 2],
+                    // Spread across the 15-day warning window, so the till
+                    // shows a warning for each and FEFO has a real choice.
+                    ['code' => 'MILK-B3', 'quantity' => 9, 'days' => 2],
                     ['code' => 'MILK-B1', 'quantity' => 12, 'days' => 5],
+                    ['code' => 'MILK-B2', 'quantity' => 8, 'days' => 12],
+                    // Beyond the window, so the boundary is visible too.
+                    ['code' => 'MILK-B4', 'quantity' => 6, 'days' => 21],
                 ],
             ],
             [
@@ -136,7 +140,7 @@ class CatalogueSeeder extends Seeder
                         'low_stock_threshold' => 4,
                         'is_active' => true,
                         'tracks_expiry' => true,
-                        'expiry_warning_days' => 3,
+                        'expiry_warning_days' => Product::DEFAULT_EXPIRY_WARNING_DAYS,
                     ],
                 );
 

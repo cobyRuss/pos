@@ -232,6 +232,26 @@ class InventoryTest extends TestCase
             ->assertDontSee('cola-delivery');
     }
 
+    /**
+     * Every filter control in the log's filter bar must carry a label bound
+     * to its input, otherwise the row sits unevenly and clicking a label does
+     * not focus its field.
+     */
+    public function test_the_movement_log_filters_are_labelled_and_aligned(): void
+    {
+        $html = $this->actingAs($this->admin)->get(route('inventory.logs'))
+            ->assertOk()
+            ->getContent();
+
+        foreach (['product', 'type', 'from', 'to'] as $field) {
+            $this->assertStringContainsString("for=\"{$field}\"", $html, "The [{$field}] filter has no bound label.");
+            $this->assertStringContainsString("id=\"{$field}\"", $html, "The [{$field}] filter has no id.");
+        }
+
+        // The bar's grid must line the controls up on one baseline.
+        $this->assertStringContainsString('items-end', $html);
+    }
+
     public function test_staff_can_view_inventory_but_cannot_adjust_it(): void
     {
         $product = Product::factory()->create(['stock' => 10]);

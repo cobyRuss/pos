@@ -15,9 +15,11 @@
     </p>
 
     <form method="GET" action="{{ route('inventory.logs') }}"
-          class="mb-4 mt-4 grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-5">
-        <x-select-input name="product" label="Product" :value="$filters['product'] ?? null"
-                        :options="$products->pluck('name', 'id')" include-blank blank-label="All products" />
+          class="mt-4 mb-4 grid items-end gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-6">
+        <div class="lg:col-span-2">
+            <x-select-input name="product" label="Product" :value="$filters['product'] ?? null"
+                            :options="$products->pluck('name', 'id')" include-blank blank-label="All products" />
+        </div>
 
         <x-select-input name="type" label="Type" :value="$filters['type'] ?? null"
                         :options="[
@@ -31,7 +33,7 @@
 
         <x-text-input name="to" label="To" type="date" :value="$filters['to'] ?? null" />
 
-        <div class="flex items-end gap-2">
+        <div class="flex items-center gap-2">
             <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
                 Filter
             </button>

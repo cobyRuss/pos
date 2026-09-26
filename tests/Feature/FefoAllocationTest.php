@@ -422,4 +422,47 @@ class FefoAllocationTest extends TestCase
             type: InventoryService::TYPE_OUT,
         );
     }
+
+    public function test_the_expiry_warning_window_defaults_to_fifteen_days(): void
+    {
+        $this->assertSame(15, Product::DEFAULT_EXPIRY_WARNING_DAYS);
+        $this->assertSame(15, Product::factory()->create()->expiry_warning_days);
+    }
+
+    public function test_a_batch_inside_the_warning_window_is_flagged(): void
+    {
+        $product = Product::factory()->create(['tracks_expiry' => true, 'stock' => 0]);
+
+        $inside = $this->allocator()->receive($product, 'INSIDE', 5, today()->addDays(14)->toDateString(), 1.00);
+        $outside = $this->allocator()->receive($product, 'OUTSIDE', 5, today()->addDays(16)->toDateString(), 1.00);
+
+        $this->assertTrue($inside->fresh()->is_expiring_soon);
+        $this->assertFalse($outside->fresh()->is_expiring_soon);
+        $this->assertFalse($inside->fresh()->is_expired);
+    }
+
+    public function test_the_warning_window_is_configurable_per_product(): void
+    {
+        $product = Product::factory()->create([
+            'tracks_expiry' => true,
+            'stock' => 0,
+            'expiry_warning_days' => 2,
+        ]);
+
+        $lot = $this->allocator()->receive($product, 'B', 5, today()->addDays(5)->toDateString(), 1.00);
+
+        // Five days out would warn at the default 15-day window, but this
+        // product only cares about two.
+        $this->assertFalse($lot->fresh()->is_expiring_soon);
+    }
+
+    public function test_an_expired_batch_is_never_merely_expiring_soon(): void
+    {
+        $product = Product::factory()->create(['tracks_expiry' => true, 'stock' => 0]);
+        $lot = $this->allocator()->receive($product, 'OLD', 5, today()->subDay()->toDateString(), 1.00);
+
+        $this->assertTrue($lot->fresh()->is_expired);
+        $this->assertFalse($lot->fresh()->is_expiring_soon);
+        $this->assertFalse($lot->fresh()->is_sellable);
+    }
 }

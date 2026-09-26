@@ -98,9 +98,13 @@
                         <div class="mt-2">
                             <label for="expiry_warning_days" class="block text-sm text-slate-600">Warn this many days before expiry</label>
                             <input type="number" id="expiry_warning_days" name="expiry_warning_days" min="1" max="90"
-                                   value="{{ old('expiry_warning_days', $product->expiry_warning_days ?? 3) }}"
+                                   value="{{ old('expiry_warning_days', $product->expiry_warning_days ?? \App\Models\Product::DEFAULT_EXPIRY_WARNING_DAYS) }}"
                                    class="mt-1 w-28 rounded-lg border-slate-300 text-sm shadow-sm">
-                            <a href="{{ route('admin.lots.index', $product) }}" class="ml-2 text-sm text-emerald-700 hover:underline">Manage batches</a>
+                            <p class="mt-1 text-xs text-slate-500">
+                                The window in which the till should be selling the product down, not the
+                                point at which it becomes unsafe. Defaults to {{ \App\Models\Product::DEFAULT_EXPIRY_WARNING_DAYS }} days.
+                            </p>
+                            <a href="{{ route('admin.lots.index', $product) }}" class="mt-1 inline-block text-sm text-emerald-700 hover:underline">Manage batches</a>
                         </div>
                     @endif
                 </div>

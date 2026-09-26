@@ -23,12 +23,22 @@ class Product extends Model
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
 
+    /**
+     * How many days ahead a tracked product starts warning the till.
+     *
+     * Fifteen days is deliberately longer than it sounds: this is the window
+     * in which a perishable should be sold down, not the point at which it
+     * becomes unsafe. It is a default, not a rule — a bakery and a wholesaler
+     * want different windows, so it stays per product.
+     */
+    public const DEFAULT_EXPIRY_WARNING_DAYS = 15;
+
     protected $attributes = [
         'stock' => 0,
         'low_stock_threshold' => 5,
         'is_active' => true,
         'tracks_expiry' => false,
-        'expiry_warning_days' => 3,
+        'expiry_warning_days' => self::DEFAULT_EXPIRY_WARNING_DAYS,
     ];
 
     /**

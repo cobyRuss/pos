@@ -132,7 +132,10 @@ class ProductController extends Controller
                 // flags have to be resolved explicitly.
                 'is_active' => $request->boolean('is_active'),
                 'tracks_expiry' => $request->boolean('tracks_expiry'),
-                'expiry_warning_days' => $request->integer('expiry_warning_days', 3),
+                'expiry_warning_days' => $request->integer(
+                    'expiry_warning_days',
+                    Product::DEFAULT_EXPIRY_WARNING_DAYS,
+                ),
             ]);
 
             if ($request->boolean('remove_image') && $product->image) {

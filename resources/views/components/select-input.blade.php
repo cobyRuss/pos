@@ -8,11 +8,17 @@
     'blankLabel' => null,
 ])
 
-<label class="block text-sm font-medium text-slate-700">{{ $label }}</label>
+@if ($label)
+    <label for="{{ $name }}" class="block text-sm font-medium text-slate-700">{{ $label }}</label>
+@endif
 
-<select name="{{ $name }}"
+<select id="{{ $name }}"
+        name="{{ $name }}"
         @class([
-            'mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500',
+            // The mt-1 only applies when a label sits above, matching
+            // text-input so fields in the same filter row line up.
+            $label ? 'mt-1 w-full rounded-lg border px-3 py-2 text-sm focus:ring-emerald-500' : 'w-full rounded-lg border px-3 py-2 text-sm focus:ring-emerald-500',
+            'border-slate-300 focus:border-emerald-500',
             'border-rose-400' => $errors->has($name),
         ])>
     @if ($includeBlank)

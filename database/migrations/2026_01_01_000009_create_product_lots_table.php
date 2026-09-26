@@ -18,7 +18,7 @@ return new class extends Migration
             // How close to expiry counts as "use soon" for this product. A
             // bakery's pastries and a brewery's bottles are not on the same
             // clock, so it is per product rather than a global constant.
-            $table->unsignedInteger('expiry_warning_days')->default(3)->after('tracks_expiry');
+            $table->unsignedInteger('expiry_warning_days')->default(15)->after('tracks_expiry');
         });
 
         Schema::create('product_lots', function (Blueprint $table) {
