@@ -1,0 +1,445 @@
+/* ==========================================================================
+   POS System - custom styles layered on top of Bootstrap 5
+   ========================================================================== */
+
+:root {
+    --pos-sidebar-width: 250px;
+
+    /* UI font. Loaded from the Google Fonts CDN in the layout; the stack
+       degrades to the platform UI font when the CDN is unavailable. */
+    --pos-font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+    /* Sidebar foregrounds, measured against both sidebar backgrounds.
+       The sidebar is a light surface and the type is dark ink, never the
+       reverse: nav text 17.1:1 / 17.0:1, section header and dim icons
+       7.2:1 / 7.2:1, active pill 6.3:1 / 5.5:1 - all above WCAG AA. */
+    --pos-nav-text: #0f172a;
+    --pos-nav-muted: #475569;
+    --pos-nav-hover-text: #0f172a;
+    --pos-sidebar-text: #0f172a;
+
+    /* Kept as an alias so anything still pointing at the old token follows the
+       same accessible value. */
+    --pos-sidebar-muted: #475569;
+}
+
+/* Role-scoped navbar theming.
+   The till and the back office are separate jobs - a cashier cannot adjust
+   stock or refunds, and an administrator cannot ring up sales - so each side
+   gets its own accent and sidebar tint. */
+.app-shell {
+    --pos-sidebar-bg: #f8fafc;
+    --pos-sidebar-hover: #e2e8f0;
+    --pos-accent: #4f46e5;
+}
+
+.app-shell[data-role="staff"] {
+    --pos-sidebar-bg: #f0fdfa;
+    --pos-sidebar-hover: #ccfbf1;
+    --pos-accent: #0f766e;
+}
+
+body {
+    background-color: #f4f6f9;
+    font-size: 0.925rem;
+    font-family: var(--pos-font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- App shell ---------- */
+
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* The sidebar root is also a Bootstrap offcanvas-lg. Inside
+   @media (min-width: 992px) Bootstrap ships
+
+       .offcanvas-lg { background-color: transparent !important; }
+       .offcanvas-lg .offcanvas-header { display: none; }
+
+   Both are !important, and they load from the CDN *before* this file, so
+   without an equal !important here the surface never paints and the header
+   vanishes. That left light text sitting on the light page background -
+   1.1:1, and invisible. Only !important beats !important, so keep these
+   marked. */
+.app-sidebar {
+    width: var(--pos-sidebar-width) !important;
+    background-color: var(--pos-sidebar-bg) !important;
+    color: var(--pos-nav-text);
+    flex: 0 0 var(--pos-sidebar-width);
+    font-family: var(--pos-font-sans);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Store-name band, hidden by Bootstrap on desktop without this. */
+.app-sidebar .offcanvas-header {
+    display: flex !important;
+    background-color: var(--pos-sidebar-bg) !important;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.app-sidebar .sidebar-brand {
+    color: var(--pos-sidebar-text);
+}
+
+.app-sidebar .offcanvas-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-nav .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 1.1rem;
+    color: var(--pos-nav-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-left: 3px solid transparent;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-nav .sidebar-link:focus-visible {
+    outline: 2px solid var(--pos-nav-muted);
+    outline-offset: -2px;
+}
+
+/* Icons sit a step dimmer than their label so the text stays the focus, and
+   they follow the link state so an active item reads as one unit. */
+.sidebar-nav .sidebar-link i {
+    font-size: 1rem;
+    width: 1.1rem;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--pos-nav-muted);
+    transition: color 0.15s ease;
+}
+
+.sidebar-nav .sidebar-link:hover {
+    background-color: var(--pos-sidebar-hover);
+    color: var(--pos-nav-hover-text);
+}
+
+.sidebar-nav .sidebar-link:hover i {
+    color: var(--pos-nav-hover-text);
+}
+
+.sidebar-nav .sidebar-link.active {
+    background-color: var(--pos-accent);
+    border-left-color: #fff;
+    color: #fff;
+    font-weight: 600;
+}
+
+.sidebar-nav .sidebar-link.active i {
+    color: #fff;
+}
+
+/* Section label: wide tracking, heavy weight, muted but still AA readable. */
+.sidebar-header {
+    padding: 1.15rem 1.1rem 0.45rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pos-nav-muted);
+    font-weight: 700;
+}
+
+.app-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-topbar {
+    background-color: #fff;
+    border-bottom: 1px solid #e3e8ef;
+    padding: 0.7rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+}
+
+.app-content {
+    padding: 1.25rem;
+    flex: 1 1 auto;
+}
+
+/* Role chip in the topbar, tinted to match the sidebar accent. */
+.role-badge {
+    background-color: var(--pos-accent) !important;
+    color: #fff !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* Signed-in user block, pinned to the top of the sidebar above the nav. */
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 1.1rem;
+    margin: 0.25rem 0 0.5rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.sidebar-profile .avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+/* The name is the emphasis, the role is supporting text - both are dark ink on
+   the light sidebar, so neither uses Bootstrap's grey text utilities. */
+.sidebar-profile .profile-name {
+    color: var(--pos-sidebar-text);
+    font-weight: 600;
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.sidebar-profile .profile-role {
+    color: var(--pos-nav-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ---------- Utilities ---------- */
+
+.min-w-0 {
+    min-width: 0;
+}
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: var(--pos-accent);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.avatar-sm {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+}
+
+.money {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* ---------- Cards & tables ---------- */
+
+.card {
+    border: 1px solid #e3e8ef;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e3e8ef;
+    font-weight: 600;
+}
+
+.stat-card .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-card .stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.table > :not(caption) > * > * {
+    vertical-align: middle;
+}
+
+.table thead th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+    font-weight: 700;
+    background-color: #f8f9fb;
+    border-bottom-width: 1px;
+}
+
+.table td {
+    font-size: 0.875rem;
+}
+
+/* ---------- POS screen ---------- */
+
+.pos-grid .pos-product-card {
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    height: 100%;
+}
+
+.pos-grid .pos-product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 24, 40, 0.12);
+    border-color: var(--pos-accent);
+}
+
+.pos-grid .pos-product-card.disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.pos-grid .pos-product-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #e3e8ef;
+}
+
+.pos-cart {
+    position: sticky;
+    top: 78px;
+}
+
+.pos-cart-body {
+    max-height: 44vh;
+    overflow-y: auto;
+}
+
+.pos-cart-item {
+    border-bottom: 1px dashed #e3e8ef;
+    padding: 0.55rem 0;
+}
+
+.pos-cart-item:last-child {
+    border-bottom: 0;
+}
+
+.qty-input {
+    width: 68px;
+    text-align: center;
+}
+
+/* ---------- Product thumbnails ---------- */
+
+.product-thumb {
+    width: 38px;
+    height: 38px;
+    border-radius: 0.45rem;
+    background-color: #eef2f7;
+    /* Light surface, so this needs a dark ink rather than the sidebar muted tone. */
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* ---------- Receipt (screen preview) ---------- */
+
+.receipt-preview {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.receipt-preview hr {
+    border-top: 1px dashed #adb5bd;
+    margin: 0.5rem 0;
+}
+
+/* Label/value rows: the value must never be pushed out of the paper width. */
+.receipt-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.receipt-line > :last-child {
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Long product names wrap instead of shoving the amount off the sheet. */
+.receipt-item-name {
+    overflow-wrap: anywhere;
+}
+
+/* ---------- Print stylesheet ---------- */
+
+@media print {
+    .no-print,
+    .app-sidebar,
+    .app-topbar,
+    .print-hidden {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .app-content {
+        padding: 0;
+    }
+
+    .print-area {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    .print-sheet {
+        box-shadow: none !important;
+        border: 0 !important;
+        margin: 0 auto !important;
+        /* Thermal printers have a small unprintable edge, so the sheet fills the
+           printable width instead of its nominal paper width. Keeping the fixed
+           80mm/58mm width here pushed the right-hand amounts outside the page. */
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 3mm;
+    }
+}
