@@ -2,7 +2,7 @@
 
 @section('title', 'Sales Report')
 @section('page-title', 'Sales Report')
-@section('page-subtitle', $from->format('d M Y').' — '.$to->format('d M Y'))
+@section('page-subtitle', \App\Support\DateFormat::date($from).' — '.\App\Support\DateFormat::date($to))
 
 @section('content')
 @php
@@ -119,7 +119,7 @@
                 <div style="height: 280px;">
                     <canvas id="dailyChart"
                             data-currency="{{ \App\Models\Setting::currency() }}"
-                            data-labels="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('day')->map(fn ($d) => \Illuminate\Support\Carbon::parse($d)->format('M j'))->all()) }}"
+                            data-labels="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('day')->map(fn ($d) => \App\Support\DateFormat::dayShort($d))->all()) }}"
                             data-gross="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('gross')->map(fn ($v) => (float) $v)->all()) }}"
                             data-net="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('net')->map(fn ($v) => (float) $v)->all()) }}"></canvas>
                 </div>
@@ -187,7 +187,7 @@
                                     {{ $order->order_number }}
                                 </a>
                             </td>
-                            <td class="text-nowrap">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($order->created_at) }}</td>
                             <td class="small">{{ $order->cashier_name }}</td>
                             <td class="small">{{ $order->payment_method->label() }}</td>
                             <td class="text-center">{{ $order->items_count }}</td>
@@ -273,7 +273,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ asset("vendor/chart.js-4.4.1/chart.umd.min.js") }}"></script>
 <script>
 (function () {
     'use strict';

@@ -603,6 +603,13 @@ class ReportingTest extends TestCase
                 'tax_rate' => 7.5,
                 'receipt_footer' => 'See you soon!',
                 'receipt_size' => '58mm',
+                'receipt_prefix' => '88',
+                'scpwd_discount_rate' => 20,
+                'store_tin' => '123-456-789',
+                'store_vat_status' => 'vat',
+                'bir_permit_no' => 'PTCA-99887',
+                'bir_accreditation_no' => 'ACC-12345',
+                'bir_machine_no' => 'MCH-0001',
                 'low_stock_default' => 9,
                 'refund_review_threshold' => 750,
                 'refund_daily_limit' => 2000,
@@ -617,6 +624,9 @@ class ReportingTest extends TestCase
         $this->assertEquals(750.0, Setting::refundReviewThreshold());
         $this->assertEquals(2000.0, Setting::refundDailyLimit());
         $this->assertSame('-1001234567890', Setting::telegramChatId());
+        $this->assertSame('123-456-789', Setting::get('store_tin'));
+        $this->assertSame('PTCA-99887', Setting::get('bir_permit_no'));
+        $this->assertSame('MCH-0001', Setting::get('bir_machine_no'));
         $this->assertDatabaseHas('audit_logs', ['action' => AuditLogger::SETTINGS_UPDATED]);
     }
 

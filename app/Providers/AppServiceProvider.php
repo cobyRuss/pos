@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Events\DayClosed;
 use App\Events\RefundProcessed;
+use App\Listeners\SendDaySummary;
 use App\Listeners\SendRefundAlert;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Event;
@@ -34,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
         // whole alerting story depends on this mapping existing: if it ever goes
         // missing, refunds still complete but the owner is never told.
         Event::listen(RefundProcessed::class, SendRefundAlert::class);
+        Event::listen(DayClosed::class, SendDaySummary::class);
     }
 }

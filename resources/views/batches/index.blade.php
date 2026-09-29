@@ -63,7 +63,7 @@
                             </td>
                             <td>
                                 @if ($batch->hasExpiryDate())
-                                    <div>{{ $batch->expiry_date->format('M j, Y') }}</div>
+                                    <div>{{ \App\Support\DateFormat::date($batch->expiry_date) }}</div>
                                     <div class="small text-body-secondary">{{ $batch->expiryLabel() }}</div>
                                 @else
                                     <span class="text-body-secondary">No expiry</span>

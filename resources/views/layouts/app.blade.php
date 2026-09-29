@@ -5,9 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') &middot; {{ config('app.name', 'POS System') }}</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128722;</text></svg>">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    {{-- No logo/favicon asset is inlined here on purpose. Embedding the store
+         mark as a data: URI put roughly 1.5KB of URL-encoded SVG into the head
+         of every single page, which is a lot of markup to carry around for
+         decoration. If the store's real logo file is added, point this at it as
+         a normal file reference instead. --}}
+    {{--
+        Bootstrap and the icon font are vendored under public/vendor and loaded
+        from disk, not from a CDN. A store in the province loses its connection
+        often, and layouts/app calls new bootstrap.Modal() at load time: with the
+        CDN unreachable the whole till breaks, not just the styling. The Inter
+        face is the one remaining webfont and is deliberately kept remote -
+        font.css has a full local fallback stack, so an outage costs the page
+        its typeface and nothing else.
+    --}}
+    <link href="{{ asset('vendor/bootstrap-5.3.3/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-icons-1.11.3/bootstrap-icons.css') }}" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet"
@@ -111,6 +124,15 @@
                     {{ $currentUser?->role->label() }}
                 </span>
 
+                {{-- Shown only while the browser believes it is offline. See the
+                     script at the foot of this layout. --}}
+                <span class="badge text-bg-warning d-none align-items-center gap-1"
+                      id="connection-badge" role="status" aria-live="polite"
+                      title="Sales still save to this machine. Owner alerts wait until the connection returns.">
+                    <i class="bi bi-wifi-off"></i>
+                    <span class="d-none d-lg-inline">Offline</span>
+                </span>
+
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light dropdown-toggle d-flex align-items-center gap-2"
                             type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -147,8 +169,40 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
-@yield('scripts')
+<script src="{{ asset('vendor/bootstrap-5.3.3/bootstrap.bundle.min.js') }}"></script>
+    @stack('scripts')
+    <script>
+        /*
+         * Connection indicator.
+         *
+         * Selling does not depend on the internet - the till talks to a local
+         * database - so this badge never blocks anything. It exists because the
+         * one thing that DOES need a connection is the owner's Telegram alert:
+         * if a refund happens while the line is down, the alert waits in the
+         * database until a queue worker can send it. A cashier who cannot see
+         * that will not think to mention it, and the owner is not in the shop to
+         * notice the silence.
+         *
+         * navigator.onLine is a hint, not a guarantee (it reports "connected to
+         * a network", not "the internet is reachable"), which is why this is
+         * worded as information rather than as an alarm.
+         */
+        (function () {
+            'use strict';
+
+            var badge = document.getElementById('connection-badge');
+            if (!badge) return;
+
+            function paint() {
+                var online = navigator.onLine !== false;
+                badge.classList.toggle('d-none', online);
+            }
+
+            window.addEventListener('online', paint);
+            window.addEventListener('offline', paint);
+            paint();
+        })();
+    </script>
+    @yield('scripts')
 </body>
 </html>

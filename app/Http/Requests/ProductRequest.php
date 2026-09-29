@@ -21,6 +21,13 @@ class ProductRequest extends FormRequest
         return [
             'category_id' => ['nullable', 'integer', Rule::exists('categories', 'id')],
             'name' => ['required', 'string', 'max:255'],
+            'barcode' => [
+                'nullable',
+                'string',
+                'max:32',
+                'regex:/^[0-9]+$/',
+                Rule::unique('products', 'barcode')->ignore($this->route('product')),
+            ],
             'description' => ['nullable', 'string', 'max:2000'],
             'cost_price' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'selling_price' => ['required', 'numeric', 'min:0', 'max:99999999'],
@@ -64,6 +71,7 @@ class ProductRequest extends FormRequest
     {
         return [
             'category_id' => 'category',
+            'barcode' => 'barcode',
             'expiry_date' => 'expiry date',
             'image' => 'product image',
             'remove_image' => 'remove image',
@@ -96,6 +104,10 @@ class ProductRequest extends FormRequest
         $this->merge([
             'category_id' => ($categoryId = $this->input('category_id')) !== '' ? $categoryId : null,
             'is_active' => $this->boolean('is_active'),
+            // An empty barcode box means "this product has no printed code",
+            // not "a barcode of the empty string", which would collide with
+            // every other unbarcoded product on the unique index.
+            'barcode' => ($barcode = trim((string) $this->input('barcode'))) === '' ? null : $barcode,
         ]);
     }
 }

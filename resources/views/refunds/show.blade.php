@@ -125,7 +125,7 @@
                     <dt class="col-5 text-body-secondary fw-normal">Processed by</dt>
                     <dd class="col-7">
                         {{ $refund->processed_by }}
-                        <div class="text-body-secondary">{{ $refund->refunded_at->format('d/m/Y H:i') }}</div>
+                        <div class="text-body-secondary">{{ \App\Support\DateFormat::dateTime($refund->refunded_at) }}</div>
                     </dd>
 
                     <dt class="col-5 text-body-secondary fw-normal">Review</dt>
@@ -136,7 +136,7 @@
                             <span class="badge text-bg-success">
                                 Reviewed by {{ $refund->reviewer?->name ?? 'admin' }}
                             </span>
-                            <div class="text-body-secondary small">{{ $refund->reviewed_at->format('d/m/Y H:i') }}</div>
+                            <div class="text-body-secondary small">{{ \App\Support\DateFormat::dateTime($refund->reviewed_at) }}</div>
                         @else
                             <span class="badge text-bg-danger">Awaiting review</span>
                             @if (auth()->user()->isAdmin())
@@ -159,7 +159,7 @@
                             <span class="badge {{ $alert->status->badgeClass() }}">{{ $alert->status->label() }}</span>
                             <div class="text-body-secondary small">
                                 {{ $alert->attempts }} attempt(s)
-                                @if ($alert->sent_at) · {{ $alert->sent_at->format('d/m/Y H:i') }} @endif
+                                @if ($alert->sent_at) · {{ \App\Support\DateFormat::dateTime($alert->sent_at) }} @endif
                             </div>
                             @if ($alert->error)
                                 <div class="text-danger small">{{ $alert->error }}</div>

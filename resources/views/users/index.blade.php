@@ -87,7 +87,7 @@
                     <td class="small text-nowrap">
                         @if ($user->last_login_at)
                             {{ $user->last_login_at->diffForHumans() }}
-                            <div class="text-body-secondary">{{ $user->last_login_at->format('d/m/Y H:i') }}</div>
+                            <div class="text-body-secondary">{{ \App\Support\DateFormat::dateTime($user->last_login_at) }}</div>
                         @else
                             <span class="text-body-secondary">Never</span>
                         @endif

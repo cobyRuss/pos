@@ -58,7 +58,7 @@
             <tbody>
             @forelse ($movements as $movement)
                 <tr>
-                    <td class="text-nowrap">{{ $movement->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($movement->created_at) }}</td>
                     <td>
                         @if ($movement->product)
                             <a href="{{ route('products.show', $movement->product) }}" class="text-decoration-none fw-semibold">
@@ -84,7 +84,7 @@
                              stays accurate if the lot is later re-dated. --}}
                         @if ($movement->expiry_date)
                             <div class="text-body-secondary">
-                                {{ $movement->expiry_date->format('M j, Y') }}
+                                {{ \App\Support\DateFormat::date($movement->expiry_date) }}
                             </div>
                         @endif
                     </td>

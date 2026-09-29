@@ -8,8 +8,10 @@
 @php
     $groupLabels = [
         'general' => ['Store profile', 'bi-shop'],
+        'bir' => ['BIR / PTCA registration', 'bi-building-check'],
         'tax' => ['Taxation', 'bi-percent'],
         'receipt' => ['Receipts', 'bi-receipt'],
+        'discounts' => ['Counter discounts', 'bi-person-check'],
         'inventory' => ['Inventory defaults', 'bi-boxes'],
         'refunds' => ['Refund guardrails', 'bi-shield-exclamation'],
         'integrations' => ['Integrations', 'bi-bell'],
@@ -40,13 +42,22 @@
                                                 <option value="{{ $value }}" @selected(old($name, $setting['value']) === $value)>{{ $text }}</option>
                                             @endforeach
                                         </select>
+                                    @elseif ($name === 'store_vat_status')
+                                        <select class="form-select @error($name) is-invalid @enderror" id="{{ $name }}" name="{{ $name }}">
+                                            @foreach (['vat' => 'VAT registered', 'nonvat' => 'Non-VAT registered', 'exempt' => 'VAT exempt'] as $value => $text)
+                                                <option value="{{ $value }}" @selected(old($name, $setting['value']) === $value)>{{ $text }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text">
+                                            Printed beside the TIN on the receipt header.
+                                        </div>
                                     @elseif (in_array($name, ['store_address', 'receipt_footer'], true))
                                         <textarea class="form-control @error($name) is-invalid @enderror" id="{{ $name }}"
                                                   name="{{ $name }}" rows="2">{{ old($name, $setting['value']) }}</textarea>
                                     @elseif ($name === 'store_email')
                                         <input type="email" class="form-control @error($name) is-invalid @enderror" id="{{ $name }}"
                                                name="{{ $name }}" value="{{ old($name, $setting['value']) }}">
-                                    @elseif (in_array($name, ['tax_rate', 'low_stock_default', 'refund_review_threshold', 'refund_daily_limit'], true))
+                                    @elseif (in_array($name, ['tax_rate', 'low_stock_default', 'refund_review_threshold', 'refund_daily_limit', 'scpwd_discount_rate'], true))
                                         <input type="number" step="0.01" min="0"
                                                class="form-control @error($name) is-invalid @enderror" id="{{ $name }}"
                                                name="{{ $name }}" value="{{ old($name, $setting['value']) }}">

@@ -26,6 +26,10 @@ class Order extends Model
         'discount_type',
         'discount_value',
         'discount_amount',
+        'scpwd_applied',
+        'scpwd_name',
+        'scpwd_id_type',
+        'scpwd_id_number',
         'tax_rate',
         'tax_amount',
         'total',
@@ -33,6 +37,7 @@ class Order extends Model
         'paid_amount',
         'change_amount',
         'payment_method',
+        'gcash_reference',
         'customer_note',
         'cancelled_at',
         'cancel_reason',
@@ -47,6 +52,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'discount_type' => DiscountType::class,
             'payment_method' => PaymentMethod::class,
+            'scpwd_applied' => 'boolean',
             'subtotal' => 'decimal:2',
             'discount_value' => 'decimal:2',
             'discount_amount' => 'decimal:2',
@@ -145,12 +151,26 @@ class Order extends Model
         return round((float) $this->total - (float) $this->refunded_amount, 2);
     }
 
+    /**
+     * The next receipt number in the store's series.
+     *
+     * Sequential rather than random, because this number is the store's BIR
+     * record of the sale: a customer quoting a receipt over the phone, or an
+     * inspection checking for gaps, both need a run of receipts they can read
+     * straight through. The number is drawn from a row-locked daily counter and
+     * rolls over at midnight.
+     *
+     * Must be called inside the checkout transaction so the number is only
+     * consumed if the order it names is actually written.
+     */
     public static function generateOrderNumber(): string
     {
-        do {
-            $number = 'ORD-'.now()->format('Ymd').'-'.strtoupper(bin2hex(random_bytes(3)));
-        } while (static::where('order_number', $number)->exists());
+        $number = DocumentSequence::take('receipt');
 
-        return $number;
+        return sprintf(
+            '%s-%s',
+            trim((string) Setting::get('receipt_prefix', '88')),
+            str_pad((string) $number, 6, '0', STR_PAD_LEFT),
+        );
     }
 }

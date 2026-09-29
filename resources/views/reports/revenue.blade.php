@@ -2,7 +2,7 @@
 
 @section('title', 'Revenue Report')
 @section('page-title', 'Revenue Report')
-@section('page-subtitle', $from->format('d M Y').' — '.$to->format('d M Y'))
+@section('page-subtitle', \App\Support\DateFormat::date($from).' — '.\App\Support\DateFormat::date($to))
 
 @section('content')
 @php
@@ -100,7 +100,7 @@
                 <div style="height: 280px;">
                     <canvas id="revenueChart"
                             data-currency="{{ \App\Models\Setting::currency() }}"
-                            data-labels="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('day')->map(fn ($d) => \Illuminate\Support\Carbon::parse($d)->format('M j'))->all()) }}"
+                            data-labels="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('day')->map(fn ($d) => \App\Support\DateFormat::dayShort($d))->all()) }}"
                             data-net="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('net')->map(fn ($v) => (float) $v)->all()) }}"
                             data-orders="{{ \Illuminate\Support\Js::from(collect($byDay)->pluck('orders')->map(fn ($v) => (int) $v)->all()) }}"></canvas>
                 </div>
@@ -186,7 +186,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ asset("vendor/chart.js-4.4.1/chart.umd.min.js") }}"></script>
 <script>
 (function () {
     'use strict';

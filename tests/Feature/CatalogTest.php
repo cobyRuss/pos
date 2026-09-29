@@ -67,36 +67,75 @@ class CatalogTest extends TestCase
         ]);
     }
 
-    public function test_products_no_longer_carry_a_sku_or_barcode(): void
+    public function test_a_product_carries_an_optional_unique_numeric_barcode(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->post(route('admin.products.store'), $this->payload([
+            'name' => 'Cola Can',
+            'barcode' => '4801101000014',
+        ]))->assertRedirect();
+
+        $this->assertDatabaseHas('products', ['name' => 'Cola Can', 'barcode' => '4801101000014']);
+
+        // The same printed code on a second product would make a scan ambiguous,
+        // so it is refused.
+        $this->actingAs($admin)
+            ->post(route('admin.products.store'), $this->payload([
+                'name' => 'Cola Can Duplicate',
+                'barcode' => '4801101000014',
+            ]))
+            ->assertSessionHasErrors('barcode');
+
+        // Barcodes are digits. A product with no printed code stores null, and
+        // null must not collide with the next product that also has none.
+        $this->actingAs($admin)
+            ->post(route('admin.products.store'), $this->payload([
+                'name' => 'Loose Bananas',
+                'barcode' => '',
+            ]))
+            ->assertRedirect();
+
+        $this->actingAs($admin)
+            ->post(route('admin.products.store'), $this->payload([
+                'name' => 'Loose Apples',
+                'barcode' => '',
+            ]))
+            ->assertRedirect();
+
+        $this->assertSame(2, Product::whereNull('barcode')->count());
+    }
+
+    public function test_a_product_still_carries_no_sku(): void
     {
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->post(route('admin.products.store'), $this->payload());
 
-        $this->assertDatabaseHas('products', ['name' => 'Sparkling Water']);
         $this->assertFalse(
             Schema::hasColumn('products', 'sku'),
             'The sku column should no longer exist.'
         );
-        $this->assertFalse(Schema::hasColumn('products', 'barcode'));
         $this->assertFalse(Schema::hasColumn('order_items', 'sku'));
 
         // A payload that still carries the old fields must be ignored, not stored.
         $this->actingAs($admin)->post(route('admin.products.store'), $this->payload([
             'name' => 'Legacy Payload',
             'sku' => 'OLD-001',
-            'barcode' => '5012345678900',
         ]))->assertRedirect();
 
         $legacy = Product::where('name', 'Legacy Payload')->sole();
         $this->assertArrayNotHasKey('sku', $legacy->getAttributes());
-        $this->assertArrayNotHasKey('barcode', $legacy->getAttributes());
     }
 
     public function test_search_only_matches_name_and_description(): void
     {
         $admin = User::factory()->admin()->create();
-        $cola = Product::factory()->create(['name' => 'Cola Can', 'description' => 'Fizzy classic']);
+        $cola = Product::factory()->create([
+            'name' => 'Cola Can',
+            'description' => 'Fizzy classic',
+            'barcode' => '4801101000014',
+        ]);
         Product::factory()->create(['name' => 'Crisps', 'description' => 'Salted snack']);
 
         $this->actingAs($admin)
@@ -110,11 +149,18 @@ class CatalogTest extends TestCase
             ->assertOk()
             ->assertSee('Cola Can');
 
-        // A code that used to be searchable now matches nothing.
+        // The old SKU is still not searchable, because it no longer exists.
         $this->actingAs($admin)
             ->get(route('products.index', ['q' => 'SKU-1']))
             ->assertOk()
             ->assertDontSee($cola->name);
+
+        // A printed barcode typed or pasted into the search box finds its
+        // product, so a code the camera cannot read is still recoverable.
+        $this->actingAs($admin)
+            ->get(route('products.index', ['q' => '4801101000014']))
+            ->assertOk()
+            ->assertSee('Cola Can');
     }
 
     public function test_core_fields_are_validated(): void

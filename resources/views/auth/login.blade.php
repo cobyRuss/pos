@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Sign In &middot; {{ config('app.name', 'POS System') }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-5.3.3/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-icons-1.11.3/bootstrap-icons.css') }}" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body class="bg-body-secondary">
@@ -13,9 +13,6 @@
     <div class="card shadow-sm w-100" style="max-width: 420px;">
         <div class="card-body p-4">
             <div class="text-center mb-4">
-                <div class="stat-icon bg-primary bg-opacity-10 text-primary mx-auto mb-3" style="width:56px;height:56px;font-size:1.6rem;">
-                    <i class="bi bi-shop"></i>
-                </div>
                 <h1 class="h4 mb-1">{{ \App\Models\Setting::get('store_name', config('app.name')) }}</h1>
                 <p class="text-body-secondary small mb-0">Sign in to access the point of sale</p>
             </div>
@@ -66,6 +63,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('vendor/bootstrap-5.3.3/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

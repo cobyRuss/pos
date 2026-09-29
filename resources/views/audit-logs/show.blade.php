@@ -2,7 +2,7 @@
 
 @section('title', 'Audit Entry')
 @section('page-title', 'Audit Entry')
-@section('page-subtitle', str_replace('_', ' ', $log->action).' — '.$log->created_at->format('d M Y H:i:s'))
+@section('page-subtitle', str_replace('_', ' ', $log->action).' — '.\App\Support\DateFormat::dateTimeSeconds($log->created_at))
 
 @section('content')
 <div class="d-flex gap-2 mb-3">
@@ -33,7 +33,7 @@
                     </dd>
 
                     <dt class="col-5 text-body-secondary fw-normal">When</dt>
-                    <dd class="col-7">{{ $log->created_at->format('d/m/Y H:i:s') }}<div class="text-body-secondary">{{ $log->created_at->diffForHumans() }}</div></dd>
+                    <dd class="col-7">{{ \App\Support\DateFormat::dateTimeSeconds($log->created_at) }}<div class="text-body-secondary">{{ $log->created_at->diffForHumans() }}</div></dd>
 
                     <dt class="col-5 text-body-secondary fw-normal">Target</dt>
                     <dd class="col-7">

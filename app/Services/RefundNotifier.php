@@ -7,6 +7,7 @@ use App\Models\Refund;
 use App\Models\RefundNotification;
 use App\Models\Setting;
 use App\Support\AuditLogger;
+use App\Support\DateFormat;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Http\Client\Response;
@@ -113,7 +114,7 @@ class RefundNotifier
             $lines[] = '<b>Note:</b> '.$this->escape($refund->note);
         }
 
-        $lines[] = '<b>Time:</b> '.$refund->refunded_at?->format('M j, Y g:i A') ?? 'unknown';
+        $lines[] = '<b>Time:</b> '.DateFormat::dateTime($refund->refunded_at);
 
         if ($refund->review_required) {
             $lines[] = '';

@@ -158,7 +158,7 @@
                     <tbody>
                     @forelse ($byDay as $day)
                         <tr>
-                            <td>{{ \Illuminate\Support\Carbon::parse($day->day)->format('D d M Y') }}</td>
+                            <td>{{ \App\Support\DateFormat::date($day->day) }}</td>
                             <td class="text-center">{{ $day->refunds }}</td>
                             <td class="text-end money">{{ \App\Models\Setting::money($day->refunded) }}</td>
                             <td class="text-center">{{ $day->flagged_count ?: '—' }}</td>
@@ -219,7 +219,7 @@
                 @foreach ($flagged as $row)
                     <tr>
                         <td class="fw-semibold"><a href="{{ route('refunds.show', $row) }}" class="text-decoration-none">{{ $row->refund_number }}</a></td>
-                        <td class="text-nowrap">{{ $row->refunded_at->format('d/m H:i') }}</td>
+                        <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($row->refunded_at) }}</td>
                         <td>{{ $row->processed_by }}</td>
                         <td><a href="{{ route('orders.show', $row->order) }}" class="text-decoration-none">{{ $row->order?->order_number }}</a></td>
                         <td class="small">{{ $row->reason_code?->label() ?? '—' }}</td>

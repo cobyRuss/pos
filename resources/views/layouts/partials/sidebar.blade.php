@@ -12,6 +12,9 @@
         ['route' => 'orders.index', 'label' => 'Orders', 'icon' => 'bi-receipt', 'show' => true],
         ['route' => 'products.index', 'label' => 'Products', 'icon' => 'bi-box-seam', 'show' => true],
         ['route' => 'inventory.index', 'label' => 'Inventory', 'icon' => 'bi-boxes', 'show' => true],
+        // Shown to everyone: a cashier opens and counts their own, the owner
+        // reads everyone's. The counting itself is still staff-only.
+        ['route' => 'drawer.index', 'label' => 'Cash Drawer', 'icon' => 'bi-cash-stack', 'show' => true],
 
         ['header' => 'Administration', 'show' => $isAdmin],
         ['route' => 'admin.dashboard', 'label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'show' => $isAdmin],

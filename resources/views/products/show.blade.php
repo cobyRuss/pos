@@ -116,7 +116,7 @@
                                 'expiring' => 'text-bg-warning',
                                 default => 'text-bg-light',
                             } }}">
-                                {{ $soonestBatch->expiry_date->format('M j, Y') }}
+                                {{ \App\Support\DateFormat::date($soonestBatch->expiry_date) }}
                             </span>
                             <div class="small text-body-secondary">{{ $soonestBatch->expiryLabel() }}</div>
                         @else
@@ -175,7 +175,7 @@
                                     {{ $item->order->order_number }}
                                 </a>
                             </td>
-                            <td class="text-nowrap">{{ $item->order->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($item->order->created_at) }}</td>
                             <td>{{ $item->order->cashier_name }}</td>
                             <td class="text-center">{{ $item->quantity }}</td>
                             <td class="text-end money">{{ \App\Models\Setting::money($item->line_total) }}</td>
@@ -209,7 +209,7 @@
                     <tbody>
                     @forelse ($movements as $movement)
                         <tr>
-                            <td class="text-nowrap">{{ $movement->created_at->format('d/m/Y H:i') }}</td>
+                            <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($movement->created_at) }}</td>
                             <td><span class="badge {{ $movement->type->badgeClass() }}">{{ $movement->type->label() }}</span></td>
                             <td class="text-center money fw-semibold {{ $movement->isIncrease() ? 'text-success' : 'text-danger' }}">
                                 {{ $movement->isIncrease() ? '+' : '' }}{{ $movement->quantity }}

@@ -100,6 +100,54 @@ class PosController extends Controller
         return $query->limit(60)->get();
     }
 
+    /**
+     * Resolve one scanned barcode to a product.
+     *
+     * The camera scanner decodes a number and posts it here; the till then adds
+     * the returned product through the ordinary cart endpoint, so a scanned item
+     * passes the same stock, expiry and active checks as a clicked one. This
+     * method only ever looks a product up - it never writes to the catalogue.
+     * An unknown code is reported as a plain, actionable message rather than an
+     * error page, because "scanned something the store has never heard of" is
+     * an ordinary event at a till, not a failure.
+     */
+    public function lookup(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'barcode' => ['required', 'string', 'max:32', 'regex:/^[0-9]+$/'],
+        ]);
+
+        $product = Product::query()
+            ->active()
+            ->with('category')
+            ->where('barcode', $validated['barcode'])
+            ->first();
+
+        if ($product === null) {
+            return response()->json([
+                'found' => false,
+                'barcode' => $validated['barcode'],
+                'message' => sprintf(
+                    'No product is filed under barcode %s. Search by name, or have an administrator add the code to the product.',
+                    $validated['barcode'],
+                ),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return response()->json([
+            'found' => true,
+            'barcode' => $product->barcode,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'category' => $product->category?->name,
+                'price' => (float) $product->selling_price,
+                'unit' => $product->unit,
+                'sellable_stock' => $product->sellableStock(),
+            ],
+        ]);
+    }
+
     public function search(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -221,8 +269,15 @@ class PosController extends Controller
 
         $cart = $this->cart->raw();
 
+        // The claim and the GCash reference are rebuilt from the validated
+        // request rather than read off the raw input, so a hand-crafted payload
+        // cannot smuggle in a discount percentage or an extra field.
+        $payment = array_merge($request->validated(), [
+            'scpwd' => $request->scpwdClaim(),
+        ]);
+
         try {
-            $order = $this->orders->checkout($cart, $request->validated(), $request->user());
+            $order = $this->orders->checkout($cart, $payment, $request->user());
         } catch (InsufficientStockException $e) {
             return back()
                 ->withInput()

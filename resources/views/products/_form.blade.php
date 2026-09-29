@@ -64,6 +64,22 @@
         </div>
 
         <div class="row g-3">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="barcode" class="form-label">Barcode</label>
+                    <input type="text" class="form-control @error('barcode') is-invalid @enderror"
+                           id="barcode" name="barcode" inputmode="numeric" maxlength="32"
+                           value="{{ old('barcode', $product->barcode) }}" placeholder="e.g. 5012345678900">
+                    @error('barcode')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">
+                        Leave blank if the pack has no printed code. The till can
+                        always find the product by name, whether or not this is filled in.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
             <div class="col-md-12">
                 <div class="mb-3">
                     <label for="description" class="form-label">Description</label>

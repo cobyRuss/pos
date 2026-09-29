@@ -12,6 +12,7 @@ use App\Models\ProductBatch;
 use App\Models\Refund;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\DateFormat;
 use App\Support\SqlDate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -402,7 +403,7 @@ class ReportController extends Controller
             'current_orders' => $currentOrders,
             'previous_orders' => $previousOrders,
             'orders_change' => $pct((float) $currentOrders, (float) $previousOrders),
-            'previous_label' => $prevFrom->format('M j').' - '.$prevTo->format('M j, Y'),
+            'previous_label' => DateFormat::dayShort($prevFrom).' - '.DateFormat::date($prevTo),
         ];
     }
 

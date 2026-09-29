@@ -66,7 +66,7 @@
             <tbody>
             @forelse ($logs as $log)
                 <tr>
-                    <td class="text-nowrap">{{ $log->created_at->format('d/m/Y H:i:s') }}</td>
+                    <td class="text-nowrap">{{ \App\Support\DateFormat::dateTimeSeconds($log->created_at) }}</td>
                     <td class="fw-semibold">{{ $log->actor }}</td>
                     <td>
                         <span class="badge {{ $log->action_badge_class }}">{{ str_replace('_', ' ', $log->action) }}</span>

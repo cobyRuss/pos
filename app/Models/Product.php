@@ -20,6 +20,9 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'name',
+        // Printed on the pack, if the supplier put one there. Scanned at the
+        // till to look the product up; null for produce and repacked goods.
+        'barcode',
         'image_path',
         'description',
         'cost_price',
@@ -134,9 +137,16 @@ class Product extends Model
 
         $like = '%'.str_replace(['%', '_'], ['\%', '\_'], $term).'%';
 
-        return $query->where(function (Builder $q) use ($like) {
+        return $query->where(function (Builder $q) use ($like, $term) {
             $q->where('name', 'like', $like)
                 ->orWhere('description', 'like', $like);
+
+            // A scanned or pasted code should also find its product, so the
+            // search box is a second way in when the camera cannot read a
+            // crumpled label.
+            if (preg_match('/^[0-9]{6,32}$/', $term)) {
+                $q->orWhere('barcode', $term);
+            }
         });
     }
 

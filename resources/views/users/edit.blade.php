@@ -44,11 +44,11 @@
 
                     <dt class="col-7 text-body-secondary fw-normal">Last login</dt>
                     <dd class="col-5 text-end">
-                        {{ $staff->last_login_at?->format('d/m/Y H:i') ?? 'Never' }}
+                        {{ \App\Support\DateFormat::dateTime($staff->last_login_at) ?? 'Never' }}
                     </dd>
 
                     <dt class="col-7 text-body-secondary fw-normal">Created</dt>
-                    <dd class="col-5 text-end">{{ $staff->created_at->format('d/m/Y') }}</dd>
+                    <dd class="col-5 text-end">{{ \App\Support\DateFormat::date($staff->created_at) }}</dd>
                 </dl>
             </div>
             @if ($isSelf)

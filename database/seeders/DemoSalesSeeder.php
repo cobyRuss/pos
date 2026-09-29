@@ -48,7 +48,12 @@ class DemoSalesSeeder extends Seeder
                 $cashier = $cashiers->random();
                 $lines = [];
 
-                foreach ($products->random(random_int(1, 5)) as $product) {
+                // Products are drawn weighted by modelled demand, not uniformly.
+                // This is what makes the stock model checkable: after 30 days the
+                // staples should be visibly drawn down and the slow movers should
+                // be almost untouched. Uniform selection would flatten the
+                // difference and the order sheet would have nothing to say.
+                foreach ($this->weightedPick($products, random_int(1, 5)) as $product) {
                     $existing = $lines[$product->getKey()] ?? null;
                     $quantity = random_int(1, 3);
 
@@ -107,5 +112,45 @@ class DemoSalesSeeder extends Seeder
                     ->update(['created_at' => $stamp, 'updated_at' => $stamp]);
             }
         }
+    }
+
+    /**
+     * Draw a number of distinct products, weighted by modelled daily demand.
+     *
+     * Uses exponential-race sampling: each product gets `weight = daily demand`
+     * repeated as many "tickets" as its share warrants, and a draw picks a
+     * ticket and finds its owner. A corned beef selling four a day therefore
+     * turns up roughly four times as often as a detergent selling half a unit.
+     *
+     * @param  \Illuminate\Support\Collection<int, Product>  $products
+     * @return \Illuminate\Support\Collection<int, Product>
+     */
+    private function weightedPick($products, int $count)
+    {
+        $tickets = [];
+
+        foreach ($products as $product) {
+            $weight = CatalogSeeder::dailyDemandFor($product->name);
+
+            // Four tickets per unit of demand: enough resolution to tell 0.3 from
+            // 0.4 apart, and only a couple of hundred tickets in total.
+            $ticketsForProduct = max(1, (int) round($weight * 4));
+
+            for ($i = 0; $i < $ticketsForProduct; $i++) {
+                $tickets[] = $product;
+            }
+        }
+
+        if ($tickets === []) {
+            return $products->take($count);
+        }
+
+        $picked = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $picked[] = $tickets[array_rand($tickets)];
+        }
+
+        return collect($picked)->unique('id')->values();
     }
 }

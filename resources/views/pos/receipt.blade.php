@@ -9,8 +9,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Receipt {{ $order->order_number }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-5.3.3/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap-icons-1.11.3/bootstrap-icons.css') }}" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body class="bg-body-secondary receipt-{{ $receiptWidth }}">
@@ -48,12 +48,48 @@
             <div class="card-body receipt-preview">
 
                 <div class="text-center">
+                    {{-- "Official Receipt" is the wording a BIR-registered machine
+                         is expected to print. The PTCA/DTI permit and machine
+                         numbers are only shown when the store has filled them in,
+                         so a store that has not been issued them yet still gets a
+                         clean receipt rather than a column of blanks. --}}
+                    <div class="fw-bold text-uppercase">Official Receipt</div>
                     <div class="fw-bold">{{ Setting::get('store_name', config('app.name')) }}</div>
                     @if (Setting::get('store_address'))
                         <div>{{ Setting::get('store_address') }}</div>
                     @endif
                     @if (Setting::get('store_phone'))
                         <div>Tel: {{ Setting::get('store_phone') }}</div>
+                    @endif
+
+                    @php
+                        $tin = Setting::get('store_tin');
+                        $vat = Setting::get('store_vat_status', 'vat');
+                        $permit = Setting::get('bir_permit_no');
+                        $accreditation = Setting::get('bir_accreditation_no');
+                        $machine = Setting::get('bir_machine_no');
+                    @endphp
+
+                    @if ($tin)
+                        <div>TIN {{ $tin }}
+                            @if ($vat === 'vat')
+                                <span class="fw-semibold">VAT REG.</span>
+                            @elseif ($vat === 'nonvat')
+                                <span class="text-body-secondary">NON-VAT</span>
+                            @else
+                                <span class="text-body-secondary">VAT EXEMPT</span>
+                            @endif
+                        </div>
+                    @endif
+
+                    @if ($permit)
+                        <div>PTCA/DTI Permit No. {{ $permit }}</div>
+                    @endif
+                    @if ($accreditation)
+                        <div>BIR Accreditation No. {{ $accreditation }}</div>
+                    @endif
+                    @if ($machine)
+                        <div>Machine Serial No. {{ $machine }}</div>
                     @endif
                 </div>
 
@@ -65,13 +101,13 @@
                 </div>
                 <div class="receipt-line">
                     <span>Date</span>
-                    <span title="{{ $order->created_at->toDayDateTimeString() }}">
-                        {{ $order->created_at->format('d M Y') }}
+                    <span title="{{ \App\Support\DateFormat::dateTimeSeconds($order->created_at) }}">
+                        {{ \App\Support\DateFormat::date($order->created_at) }}
                     </span>
                 </div>
                 <div class="receipt-line">
                     <span>Time</span>
-                    <span>{{ $order->created_at->format('g:i A') }}</span>
+                    <span>{{ \App\Support\DateFormat::time($order->created_at) }}</span>
                 </div>
                 <div class="receipt-line">
                     <span>Served by</span>
@@ -81,6 +117,31 @@
                     <span>Payment</span>
                     <span>{{ $order->payment_method->label() }}</span>
                 </div>
+                @if ($order->gcash_reference)
+                    {{-- Printed so a remittance can be matched to this sale later. --}}
+                    <div class="receipt-line">
+                        <span>GCash Ref</span>
+                        <span>{{ $order->gcash_reference }}</span>
+                    </div>
+                @endif
+
+                {{-- The claim behind a senior citizen / PWD discount. Printed on
+                     the customer's copy on purpose: it is the evidence the
+                     discount was claimed, and the store keeps its own copy. --}}
+                @if ($order->scpwd_applied)
+                    <div class="receipt-line">
+                        <span>Senior Citizen / PWD</span>
+                        <span>{{ $order->scpwd_id_type }}</span>
+                    </div>
+                    <div class="receipt-line">
+                        <span>Name</span>
+                        <span>{{ $order->scpwd_name }}</span>
+                    </div>
+                    <div class="receipt-line">
+                        <span>ID No.</span>
+                        <span>{{ $order->scpwd_id_number }}</span>
+                    </div>
+                @endif
 
                 <hr>
 
@@ -169,7 +230,7 @@
                     <div class="text-center fw-bold text-danger">CANCELLED</div>
                     @if ($order->cancelled_at)
                         <div class="text-center text-body-secondary">
-                            {{ $order->cancelled_at->format('d M Y') }} at {{ $order->cancelled_at->format('g:i A') }}
+                            {{ \App\Support\DateFormat::date($order->cancelled_at) }} at {{ \App\Support\DateFormat::time($order->cancelled_at) }}
                         </div>
                     @endif
                 @endif
@@ -187,6 +248,6 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('vendor/bootstrap-5.3.3/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

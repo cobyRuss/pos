@@ -106,7 +106,7 @@
                             {{ $order->order_number }}
                         </a>
                     </td>
-                    <td class="text-nowrap">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($order->created_at) }}</td>
                     <td>{{ $order->cashier_name }}</td>
                     <td><span class="badge {{ $order->status->badgeClass() }}">{{ $order->status->label() }}</span></td>
                     <td>{{ $order->payment_method->label() }}</td>

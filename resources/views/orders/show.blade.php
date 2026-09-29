@@ -2,7 +2,7 @@
 
 @section('title', 'Order '.$order->order_number)
 @section('page-title', 'Order '.$order->order_number)
-@section('page-subtitle', 'Placed '.$order->created_at->format('d/m/Y \a\t H:i'))
+@section('page-subtitle', 'Placed '.\App\Support\DateFormat::dateTime($order->created_at))
 
 @section('content')
 <div class="d-flex flex-wrap gap-2 mb-3">
@@ -32,7 +32,7 @@
 
 @if ($order->isCancelled())
     <div class="alert alert-danger">
-        <strong>This order was cancelled</strong> on {{ $order->cancelled_at?->format('d/m/Y H:i') }}.
+        <strong>This order was cancelled</strong> on {{ \App\Support\DateFormat::dateTime($order->cancelled_at) }}.
         @if ($order->cancel_reason)
             <br>Reason: {{ $order->cancel_reason }}
         @endif
@@ -140,7 +140,7 @@
                         @foreach ($order->refunds as $refund)
                             <tr>
                                 <td class="fw-semibold">{{ $refund->refund_number }}</td>
-                                <td class="text-nowrap">{{ $refund->refunded_at->format('d/m/Y H:i') }}</td>
+                                <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($refund->refunded_at) }}</td>
                                 <td>{{ $refund->reason_code?->label() ?? $refund->reason }}</td>
                                 <td>{{ $refund->method->label() }}</td>
                                 <td>{{ $refund->processed_by }}</td>
@@ -184,7 +184,7 @@
                     <dd class="col-7">{{ $order->items->sum('quantity') }}</dd>
 
                     <dt class="col-5 text-body-secondary fw-normal">Created</dt>
-                    <dd class="col-7">{{ $order->created_at->format('d/m/Y H:i') }}</dd>
+                    <dd class="col-7">{{ \App\Support\DateFormat::dateTime($order->created_at) }}</dd>
                 </dl>
             </div>
         </div>

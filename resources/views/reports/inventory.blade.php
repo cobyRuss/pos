@@ -148,7 +148,7 @@
                                         'expiring' => 'text-bg-warning',
                                         default => 'text-bg-light',
                                     } }}">
-                                        {{ $product->nextExpiryDate()->format('M j, Y') }}
+                                        {{ \App\Support\DateFormat::date($product->nextExpiryDate()) }}
                                     </span>
                                 @else
                                     <span class="text-body-secondary small">No expiry</span>

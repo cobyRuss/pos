@@ -161,8 +161,13 @@ class NavbarThemeTest extends TestCase
         $css = $this->cssRules();
 
         // The brand used to carry Bootstrap's text-white, which is unreadable on
-        // the light sidebar. It now takes the sidebar ink token.
-        $this->assertStringContainsString('class="text-decoration-none sidebar-brand"', $html);
+        // the light sidebar. It now takes the sidebar ink token. The anchor
+        // carries extra layout classes for the logo, so this matches on the
+        // brand class rather than pinning the whole attribute.
+        $this->assertMatchesRegularExpression(
+            '/class="[^"]*\bsidebar-brand\b[^"]*"/',
+            $html,
+        );
         $this->assertStringNotContainsString('text-decoration-none text-white', $html);
         $this->assertTrue(
             $this->ruleDeclares($css, '.app-sidebar .sidebar-brand', 'color'),

@@ -48,9 +48,11 @@ class ReceiptTest extends TestCase
         $response->assertOk()
             ->assertSee('Date', false)
             ->assertSee('Time', false)
-            // d M Y on the date row, g:i A on the time row.
-            ->assertSee('14 Mar 2026')
-            ->assertSee('7:26 PM');
+            // mm/dd/yyyy on the date row, 24-hour clock on the time row. 19:26 is
+            // the interesting case: a 12-hour format would print 7:26 PM here.
+            ->assertSee('03/14/2026')
+            ->assertSee('19:26')
+            ->assertDontSee('7:26 PM');
     }
 
     public function test_the_time_row_tracks_the_order_timestamp(): void
@@ -60,6 +62,8 @@ class ReceiptTest extends TestCase
 
         $order = $this->sell($cashier, $product);
 
+        // 23:59 is the case that proves the clock: a 12-hour format prints
+        // 11:59 PM and the day boundary is a real risk when nobody is on site.
         foreach (['2026-01-02 08:05:00', '2026-07-19 13:47:00', '2026-12-31 23:59:00'] as $stamp) {
             $order->forceFill(['created_at' => $stamp, 'updated_at' => $stamp])->save();
 
@@ -68,8 +72,8 @@ class ReceiptTest extends TestCase
             $this->actingAs($cashier)
                 ->get(route('orders.receipt', $order))
                 ->assertOk()
-                ->assertSee($expected->format('d M Y'))
-                ->assertSee($expected->format('g:i A'));
+                ->assertSee($expected->format('m/d/Y'))
+                ->assertSee($expected->format('H:i'));
         }
     }
 
@@ -87,7 +91,7 @@ class ReceiptTest extends TestCase
         // A fresh sale is stamped and printed in the same wall-clock zone.
         $rendered = Carbon::createFromTimestamp($order->fresh()->created_at->getTimestamp())
             ->setTimezone(config('app.timezone'))
-            ->format('g:i A');
+            ->format('H:i');
 
         $this->actingAs($cashier)
             ->get(route('orders.receipt', $order))
@@ -123,11 +127,11 @@ class ReceiptTest extends TestCase
         // MySQL DATETIME has no zone, so the value is read as wall-clock time in
         // whichever zone the app is configured for - that is the whole point.
         $this->assertSame(
-            Carbon::parse($stored, 'Asia/Manila')->format('g:i A'),
+            Carbon::parse($stored, 'Asia/Manila')->format('H:i'),
             trim($manilaTime[1] ?? ''),
         );
         $this->assertSame(
-            Carbon::parse($stored, 'UTC')->format('g:i A'),
+            Carbon::parse($stored, 'UTC')->format('H:i'),
             trim($utcTime[1] ?? ''),
         );
     }
@@ -184,8 +188,8 @@ class ReceiptTest extends TestCase
             ->assertOk()
             ->assertSee('CANCELLED')
             ->assertSee('Customer changed mind')
-            ->assertSee('5 May 2026')
-            ->assertSee('11:15 AM');
+            ->assertSee('05/05/2026')
+            ->assertSee('11:15');
     }
 
     public function test_a_refunded_receipt_shows_the_refund_and_the_net_total(): void

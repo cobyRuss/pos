@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DrawerController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PosController;
@@ -62,12 +63,28 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:staff')->prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [PosController::class, 'index'])->name('index');
         Route::get('search', [PosController::class, 'search'])->name('search');
+        Route::get('lookup', [PosController::class, 'lookup'])->name('lookup');
         Route::post('cart', [PosController::class, 'store'])->name('cart.store');
         Route::patch('cart/{product}', [PosController::class, 'update'])->name('cart.update');
         Route::delete('cart/{product}', [PosController::class, 'destroy'])->name('cart.destroy');
         Route::delete('cart', [PosController::class, 'clear'])->name('cart.clear');
         Route::post('checkout', [PosController::class, 'checkout'])->name('checkout');
+
+        // The drawer is a till action: only a cashier holds the cash, so only a
+        // cashier opens and counts it. The owner reads everyone's drawers from
+        // the same screen via the shared GET below.
+        Route::post('drawer/open', [DrawerController::class, 'open'])->name('drawer.open');
+        Route::post('drawer/{cashSession}/close', [DrawerController::class, 'close'])->name('drawer.close');
     });
+
+    /*
+    |----------------------------------------------------------------------
+    | Cash drawer
+    |   Shared because the owner has to be able to read every cashier's
+    |   counted drawer, even though they never open one themselves.
+    |----------------------------------------------------------------------
+    */
+    Route::get('drawer', [DrawerController::class, 'index'])->name('drawer.index');
 
     /*
     |----------------------------------------------------------------------

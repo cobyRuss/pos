@@ -57,6 +57,12 @@ class AuditLogger
 
     public const SETTINGS_UPDATED = 'settings.updated';
 
+    public const DRAWER_OPENED = 'drawer.opened';
+
+    public const DRAWER_CLOSED = 'drawer.closed';
+
+    public const DAY_SUMMARY_FAILED = 'drawer.summary_failed';
+
     public const ACCESS_DENIED = 'access.denied';
 
     /**

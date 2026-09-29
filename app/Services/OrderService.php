@@ -83,18 +83,30 @@ class OrderService
 
             $subtotal = round($subtotal, 2);
 
-            // The till has no promos, so an order is always subtotal plus tax.
-            // The discount columns stay on the row at zero because historic
-            // orders and the reports still read them.
+            // The till has no promos, so an order is always subtotal plus tax,
+            // less a statutory senior citizen / PWD discount when one is claimed.
+            // There is no other way to reduce a total: no per-line discount, no
+            // coupon, no override. The discount rate itself is never taken from
+            // the request - it is read from the store settings here, so a
+            // crafted payload asking for 100% off computes to nothing.
             $taxRate = Setting::taxRate();
             $taxAmount = round($subtotal * $taxRate / 100, 2);
             $total = round($subtotal + $taxAmount, 2);
+
+            $scpwd = $payment['scpwd'] ?? null;
+            $discountRate = Setting::scpwdDiscountRate();
+
+            $discountAmount = is_array($scpwd) && $discountRate > 0
+                ? round($total * $discountRate / 100, 2)
+                : 0.0;
+
+            $payable = round(max(0, $total - $discountAmount), 2);
 
             // Spread the order's tax across its lines once, up front, so the
             // shares always add back up to $taxAmount exactly.
             $lineTax = $this->allocateTax($lineTotals, $taxAmount);
 
-            $paid = round(max(0, (float) ($payment['paid_amount'] ?? $total)), 2);
+            $paid = round(max(0, (float) ($payment['paid_amount'] ?? $payable)), 2);
             $method = PaymentMethod::tryFrom($payment['payment_method'] ?? 'cash') ?? PaymentMethod::Cash;
 
             $order = Order::create([
@@ -103,15 +115,22 @@ class OrderService
                 'status' => OrderStatus::Completed,
                 'subtotal' => $subtotal,
                 'discount_type' => DiscountType::Fixed,
-                'discount_value' => 0,
-                'discount_amount' => 0,
+                'discount_value' => $discountAmount > 0 ? $discountRate : 0,
+                'discount_amount' => $discountAmount,
+                'scpwd_applied' => $discountAmount > 0,
+                'scpwd_name' => $discountAmount > 0 ? ($scpwd['name'] ?? null) : null,
+                'scpwd_id_type' => $discountAmount > 0 ? ($scpwd['id_type'] ?? null) : null,
+                'scpwd_id_number' => $discountAmount > 0 ? ($scpwd['id_number'] ?? null) : null,
                 'tax_rate' => $taxRate,
                 'tax_amount' => $taxAmount,
-                'total' => $total,
+                'total' => $payable,
                 'refunded_amount' => 0,
                 'paid_amount' => $paid,
-                'change_amount' => round(max(0, $paid - $total), 2),
+                'change_amount' => round(max(0, $paid - $payable), 2),
                 'payment_method' => $method,
+                'gcash_reference' => $method === PaymentMethod::Gcash
+                    ? ($payment['gcash_reference'] ?? null)
+                    : null,
                 'customer_note' => $payment['note'] ?? ($cart['note'] ?? null),
             ]);
 

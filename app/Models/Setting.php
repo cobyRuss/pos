@@ -130,6 +130,57 @@ class Setting extends Model
     }
 
     /**
+     * The percentage taken off the bill for a senior citizen or PWD, as a
+     * percentage.
+     *
+     * A store setting rather than a till field on purpose: the rate the shop
+     * honours is the owner's decision, and a cashier who could type their own
+     * percentage would be able to set it to 100.
+     *
+     * Zero switches the discount off entirely, which is a valid choice for a
+     * store that does not participate - the till then simply never offers it.
+     */
+    public static function scpwdDiscountRate(): float
+    {
+        $rate = (float) static::get('scpwd_discount_rate', 20);
+
+        // Clamped rather than trusted: a bad settings row must not be able to
+        // make a bill negative.
+        return max(0.0, min(100.0, $rate));
+    }
+
+    /**
+     * The ID types a senior citizen / PWD claim may be made against.
+     *
+     * A fixed list, so the report can group claims and so a cashier cannot file
+     * "a friend said so" as an ID type. These are the three that actually
+     * establish the entitlement:
+     *
+     *  - **Senior Citizen ID** - issued by the LGU / Office of Senior Citizen
+     *    Affairs. The one that carries the age on its face.
+     *  - **PWD ID** - issued by the city or municipal disability affairs office.
+     *  - **Philippine Residence Certificate** - issued by the LGU; proves age
+     *    and residence, and is what a customer without either card above will
+     *    actually produce.
+     *
+     * PhilSys is deliberately absent. It is the national ID and everyone has
+     * one, which is exactly the problem: a PhilSys number does not carry a
+     * disability or senior-citizen class in a way a store can verify at a
+     * counter, so accepting it would make the claim uncheckable. It was in an
+     * earlier draft of this list and was wrong.
+     *
+     * @return list<string>
+     */
+    public static function scpwdIdTypes(): array
+    {
+        return [
+            'Senior Citizen ID',
+            'PWD ID',
+            'Philippine Residence Certificate',
+        ];
+    }
+
+    /**
      * Format an amount using the configured currency symbol.
      */
     public static function money(float|int|string|null $amount): string

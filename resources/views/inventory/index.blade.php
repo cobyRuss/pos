@@ -195,7 +195,7 @@
                                 'expiring' => 'text-bg-warning',
                                 default => 'text-bg-light',
                             } }}">
-                                {{ $nextExpiry->format('M j, Y') }}
+                                {{ \App\Support\DateFormat::date($nextExpiry) }}
                             </span>
                             <div class="small {{ $expiryStatus === 'expired' ? 'text-danger' : 'text-body-secondary' }}">
                                 {{ $soonestBatch->expiryLabel() }}

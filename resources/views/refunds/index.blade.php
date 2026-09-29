@@ -100,7 +100,7 @@
             @forelse ($refunds as $refund)
                 <tr class="{{ $refund->review_required && ! $refund->isReviewed() ? 'table-warning' : '' }}">
                     <td class="fw-semibold text-nowrap">{{ $refund->refund_number }}</td>
-                    <td class="text-nowrap">{{ $refund->refunded_at->format('d/m/Y H:i') }}</td>
+                    <td class="text-nowrap">{{ \App\Support\DateFormat::dateTime($refund->refunded_at) }}</td>
                     <td>
                         <a href="{{ route('orders.show', $refund->order) }}" class="text-decoration-none">
                             {{ $refund->order->order_number }}
